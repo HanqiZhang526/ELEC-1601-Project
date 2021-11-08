@@ -1,6 +1,7 @@
 #include "robot.h"
-
+int left = 0;
 void setup_robot(struct Robot *robot){
+    /*
     robot->x = OVERALL_WINDOW_WIDTH/2-50;
     robot->y = OVERALL_WINDOW_HEIGHT-50;
     robot->true_x = OVERALL_WINDOW_WIDTH/2-50;
@@ -12,6 +13,19 @@ void setup_robot(struct Robot *robot){
     robot->currentSpeed = 0;
     robot->crashed = 0;
     robot->auto_mode = 0;
+    */
+    robot->x = 0;
+    robot->y = 380;
+    robot->true_x = 0;
+    robot->true_y = 380;
+    robot->width = ROBOT_WIDTH;
+    robot->height = ROBOT_HEIGHT;
+    robot->direction = 0;
+    robot->angle = 90;
+    robot->currentSpeed = 0;
+    robot->crashed = 0;
+    robot->auto_mode = 0;
+
 
     printf("Press arrow keys to move manually, or enter to move automatically\n\n");
 }
@@ -245,10 +259,11 @@ void robotMotorMove(struct Robot * robot) {
                 robot->currentSpeed = -MAX_ROBOT_SPEED;
             break;
         case LEFT :
-            robot->angle = (robot->angle+360-DEFAULT_ANGLE_CHANGE)%360;
+            robot->angle = (robot->angle-DEFAULT_ANGLE_CHANGE)%360;
             break;
         case RIGHT :
             robot->angle = (robot->angle+DEFAULT_ANGLE_CHANGE)%360;
+
             break;
     }
     robot->direction = 0;
@@ -265,22 +280,29 @@ void robotMotorMove(struct Robot * robot) {
     robot->y = (int) y_offset;
 }
 
-void robotAutoMotorMove(struct Robot * robot, int front_left_sensor, int front_right_sensor) {
-
+int robotAutoMotorMove(struct Robot * robot, int front_left_sensor, int front_right_sensor, int reset, int count) {
     if ((front_left_sensor == 0) && (front_right_sensor == 0)) {
-        if (robot->currentSpeed<2)
+        if (robot->currentSpeed<6)
             robot->direction = UP;
+    } else if (reset < 0){
+        robot->direction = RIGHT;
+        return reset -1;
     }
-    else if ((robot->currentSpeed>0) && ((front_left_sensor == 1) || (front_right_sensor == 1)) ) {
-        robot->direction = DOWN;
-    }
-    else if ((robot->currentSpeed==0) && ((front_left_sensor == 1) || (front_right_sensor == 1)) ) {
+    else if ((robot->currentSpeed==0) && (reset != 7)&& ((front_left_sensor >= 1) && (front_right_sensor >= 1)) ) {
         robot->direction = LEFT;
+        return reset+1; // an integer is used because a boolean cannot be declared
     }
-    else if ((robot->currentSpeed==0) && ((front_left_sensor == 1) || (front_right_sensor == 0)) ) {
+    else if ((robot->currentSpeed==0) && (count < 13) &&((front_left_sensor >= 1) && (front_right_sensor >= 1)) ) {
         robot->direction = RIGHT;
+        return -1;
     }
-    else if ((robot->currentSpeed==0) && ((front_left_sensor == 0) || (front_right_sensor == 1)) ) {
-        robot->direction = RIGHT;
+
+    else if ((robot->currentSpeed>0) && ((front_left_sensor == 1) || (front_right_sensor == 1)) ) {
+        while (robot->currentSpeed>0){
+            robot->currentSpeed -= DEFAULT_SPEED_CHANGE;
+        }
+        SDL_Delay(20);
     }
+    return reset;
+
 }

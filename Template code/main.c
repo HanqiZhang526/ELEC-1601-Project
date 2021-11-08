@@ -7,7 +7,7 @@
 #include "formulas.h"
 #include "wall.h"
 #include "robot.h"
-
+int r = 0;
 int done = 0;
 
 
@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
     // You describe position of top left corner of wall (x, y), then width and height going down/to right
     // Relative positions are used (OVERALL_WINDOW_WIDTH and OVERALL_WINDOW_HEIGHT)
     // But you can use absolute positions. 10 is used as the width, but you can change this.
+    /*
     insertAndSetFirstWall(&head, 1,  OVERALL_WINDOW_WIDTH/2, OVERALL_WINDOW_HEIGHT/2, 10, OVERALL_WINDOW_HEIGHT/2);
     insertAndSetFirstWall(&head, 2,  OVERALL_WINDOW_WIDTH/2-100, OVERALL_WINDOW_HEIGHT/2+100, 10, OVERALL_WINDOW_HEIGHT/2-100);
     insertAndSetFirstWall(&head, 3,  OVERALL_WINDOW_WIDTH/2-250, OVERALL_WINDOW_HEIGHT/2+100, 150, 10);
@@ -46,22 +47,79 @@ int main(int argc, char *argv[]) {
     insertAndSetFirstWall(&head, 10,  OVERALL_WINDOW_WIDTH/2+100, OVERALL_WINDOW_HEIGHT/2-100, 10, 300);
     insertAndSetFirstWall(&head, 11,  OVERALL_WINDOW_WIDTH/2+100, OVERALL_WINDOW_HEIGHT/2+200, OVERALL_WINDOW_WIDTH/2-100, 10);
     insertAndSetFirstWall(&head, 12,  OVERALL_WINDOW_WIDTH/2+200, OVERALL_WINDOW_HEIGHT/2+100, OVERALL_WINDOW_WIDTH/2-100, 10);
+    */
+    insertAndSetFirstWall(&head, 2,  640-10-220, 400, 10, 80);
+    insertAndSetFirstWall(&head, 2,  640-200-20, 400, 200, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-20, 50, 10, 350);
+    insertAndSetFirstWall(&head, 2,  640-280-20, 50, 280, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-300, 50, 10, 100);
+    insertAndSetFirstWall(&head, 2,  640-110-300, 150, 110, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-400, 50, 10, 100);
+    insertAndSetFirstWall(&head, 2,  640-400-220, 50, 220, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-620, 50, 10, 290);
+    insertAndSetFirstWall(&head, 2,  640-620-20, 340, 20, 10);
 
+
+    insertAndSetFirstWall(&head, 1,  640-10-320, 300, 10, 180);
+    insertAndSetFirstWall(&head, 2,  640-200-120, 300, 200, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-120, 150, 10, 150);
+    insertAndSetFirstWall(&head, 2,  640-80-120, 150, 80, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-200, 150, 10, 100);
+    insertAndSetFirstWall(&head, 2,  640-310-200, 250, 310, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-500, 150, 10, 100);
+    insertAndSetFirstWall(&head, 2,  640-20-500, 150, 20, 10);
+    insertAndSetFirstWall(&head, 2,  640-10-520, 150, 10, 290);
+    insertAndSetFirstWall(&head, 2,  640-120-520, 440, 120, 10);
     setup_robot(&robot);
     updateAllWalls(head, renderer);
 
     SDL_Event event;
+    int turnleft = 0; int count = 0;
     while(!done){
         SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
         SDL_RenderClear(renderer);
 
-        //Move robot based on user input commands/auto commands
-        if (robot.auto_mode == 1)
-            robotAutoMotorMove(&robot, front_left_sensor, front_right_sensor);
+        //Move robot based on user input commands/auto commands very important
+        if (robot.auto_mode == 1){
+            turnleft = robotAutoMotorMove(&robot, front_left_sensor, front_right_sensor, turnleft, count);
+            if (turnleft == 1){
+                int i = 0;
+                while (i < 6){
+                    turnleft = robotAutoMotorMove(&robot, front_left_sensor, front_right_sensor, turnleft, count);
+                    SDL_Delay(180);
+                    robotUpdate(renderer, &robot);
+                    robotMotorMove(&robot);
+                    i++;
+                }
+            }
+            if (turnleft >= 1){
+                count++;
+            }
+            if (turnleft == -1){
+                int k = 0;
+                while (k < 12){
+                    turnleft = robotAutoMotorMove(&robot, front_left_sensor, front_right_sensor, turnleft, count);
+                    SDL_Delay(120);
+                    robotUpdate(renderer, &robot);
+                    robotMotorMove(&robot);
+                    k++;
+                    }
+                    turnleft = 0;
+                    count = 0;
+            }
+        }
         robotMotorMove(&robot);
 
+        if (count == 12){
+            count = 0;
+            turnleft = 0;
+        }
+
         //Check if robot reaches endpoint. and check sensor values
-        if (checkRobotReachedEnd(&robot, OVERALL_WINDOW_WIDTH, OVERALL_WINDOW_HEIGHT/2+100, 10, 100)){
+        if (checkRobotReachedEnd(&robot, 640-10-320, 480, 100, 10)){ //Maze 4
+        //if (checkRobotReachedEnd(&robot, 0, 340, 10, 100)){ // Maze 3
+        //if (checkRobotReachedEnd(&robot, 220, 480, 100, 10)){ //Maze 2
+        //if (checkRobotReachedEnd(&robot, OVERALL_WINDOW_WIDTH, OVERALL_WINDOW_HEIGHT/2+100, 10, 100)){
             end_time = clock();
             msec = (end_time-start_time) * 1000 / CLOCKS_PER_SEC;
             robotSuccess(&robot, msec);
